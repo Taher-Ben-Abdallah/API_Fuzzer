@@ -1,0 +1,264 @@
+{% extends 'layout/main.html' %}
+
+{% block content %}
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Endpoint Discovery</h3>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Endpoint Discovery
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+
+
+    <div class="card">
+        <div class="card-body">
+            <form class="form form-horizontal">
+                <div class="form-body my-3">
+                    <div class="row mb-3">
+                        <div class="col-6 d-flex align-items-center mb-2">
+                            <label for="pathInput" class="me-2">Path</label>
+                            <input class="form-control" type="text" id="pathInput" placeholder="http://site.com/api/path/to/endpoint">
+                        </div>
+                        <div class="col-2 d-flex align-items-center mb-2">
+                            <label for="depthInput" class="me-2">Depth</label>
+                            <input class="form-control" type="number" id="depthInput" placeholder="Depth">
+                        </div>
+                        <div class="col d-flex align-items-center mb-2">
+                            <label for="wordlistFileInput" class="me-2">Wordlist</label>
+                            <input class="form-control" type="file" id="wordlistFileInput">
+                        </div>      
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-md d-inline-block d-flex justify-content-between">
+                            <div class="col-md-8 d-flex align-items-start">
+                                <div class="me-3">
+                                    <button class="btn btn-outline-dark me-2" id="matchHideBtn">Match / Hide requests</button>
+                                    <button class="btn btn-outline-dark" id="rateLimitBtn">Set Rate Limiting</button>
+                                </div>
+                                <div>
+                                    <input type="number" id="numWorkersInput" class="form-control" name="fname" placeholder="Workers">
+                                </div>
+                            </div>
+                        
+                            <div class="col-md d-inline-block d-flex justify-content-end">
+                                <button type="reset" class="btn btn-outline-secondary me-2" id="resetBtn">Reset</button>
+
+                                    <div class="btn-group dropdown dropdown-icon-wrapper">
+                                        <button type="button" class="btn btn-primary" id="runDiscoveryBtn">
+                                            <i class="bi bi-send"></i>
+                                            Run Discovery
+                                        </button>
+                                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a href="" id="setProxy">
+                                                <span class="dropdown-item">
+                                                    <i class="bi bi-bezier2"></i> Set Proxy
+                                                </span>
+                                            </a>
+                                            
+                                        </div>
+                                        
+                                    </div>
+                            </div>
+                        </div>
+                    </div> 
+                   
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="card" id="resultsCard">
+        <div class="card-header">
+            <h5>Results</h5>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="resultsAccordion">
+
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<script src="{{url_for('static',filename='js/endpoint-discovery.js')}}"> 
+</script>
+<script src="{{url_for('static',filename='js/fuzz-utils.js')}}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const resultsCard= document.getElementById('resultsCard');
+
+        let wordlist= null;
+        let proxy= null;
+        let matchHideData=null;
+        let rateLimitData=null;
+        let resultsCount=0;
+
+
+        document.getElementById('setProxy').addEventListener('click', function(event){
+            event.preventDefault();
+            showModal('setProxyModal', function () {
+                proxy= document.getElementById('setProxyInput').value;
+            })
+
+        });
+
+        document.getElementById('matchHideBtn').addEventListener('click', function(){
+            showModal('matchHideModal', function(){
+                matchHideData=collectMatchHideData();
+            });
+    
+            // Event listener to add a new form group on clicking the plus button
+            document.getElementById('addMatchHideGroupBtn').addEventListener('click', function () {
+                addMatchHideGroup();
+            });
+           
+        });
+    
+        document.getElementById('rateLimitBtn').addEventListener('click', function(){
+            showModal('rateLimitModal', function(){
+                rateLimitData=collectRateLimitData();
+            });
+        });
+
+
+
+        function addAccordionItem(resultData) {
+            resultsCount++;
+            const accordionHeaderId = `heading${resultsCount}`;
+            const accordionCollapseId = `collapse${resultsCount}`;
+            const sendToAnalyzerBtnId = `sendToAnalyzerBtn${resultsCount}`;
+            const requestTextareaId = `responseTextarea${resultsCount}`;
+            
+            const endpointPathId= `endpointPath${resultsCount}`;
+            const statusCodeBadgeId = `statusCodeBadge${resultsCount}`;
+
+
+            // Close all existing accordion items
+            const allButtons = document.querySelectorAll('#responseAccordion .accordion-button');
+            const allCollapseElements = document.querySelectorAll('#responseAccordion .accordion-collapse');
+            allButtons.forEach(function (button) {
+                button.classList.add('collapsed');
+                button.setAttribute('aria-expanded', 'false');
+            });
+            allCollapseElements.forEach(function (collapseElement) {
+                collapseElement.classList.remove('show');
+            });
+
+            if(resultData.status_code && resultData.endpoint && resultData.request){
+
+                // Create the new accordion item with the Send To Analyzer button
+                const newAccordionItem = `
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="${accordionHeaderId}">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionCollapseId}" aria-expanded="true" aria-controls="${accordionCollapseId}">
+                               <span class="badge bg-light-primary me-3" id="${statusCodeBadgeId}">${resultData.status_code}</span>
+                               <span class=""  id="${endpointPathId}"> </span>
+                            </button>
+                        </h2>
+                        <div id="${accordionCollapseId}" class="accordion-collapse collapse show" aria-labelledby="${accordionHeaderId}" data-bs-parent="#responseAccordion">
+                            <div class="accordion-body">
+                                <textarea class="form-control" id="${requestTextareaId}" rows="10" disabled style="font-family: 'Courier New', Courier, monospace;">${resultData.request}</textarea>
+                                <button id="${sendToAnalyzerBtnId}" class="btn mt-3">Send To Analyzer</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Append the new accordion item to the accordion container
+                document.getElementById('resultsAccordion').insertAdjacentHTML('beforeend', newAccordionItem);
+
+                // Add an event listener to the new Send To Analyzer button
+                document.getElementById(sendToAnalyzerBtnId).addEventListener('click', function () {
+                    const responseContent = document.getElementById(requestTextareaId).value;
+                    console.log(responseContent);
+                    // Send the data via a POST request
+                    fetch('/response-analyser', {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": 'application/json'
+                        },
+                        body: JSON.stringify({ response_content: responseContent })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Redirect the user to the new URL provided by Flask
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+
+                });
+            }
+        }
+
+
+        // Event listener for the button to show accordion and add DataTable
+        document.getElementById('runDiscoveryBtn').addEventListener('click', function () {
+            let data = collectDiscoveryData(rateLimitData, matchHideData, proxy);
+            data.wordlist= readWordlist();
+            console.log(data);
+
+            //Emitting to start discovery
+            discoverySocket.emitMessage('', data);
+        });
+
+
+        discoverySocket.onMessage('', function (data) {
+            console.log(data);
+            if (data.hasOwnProperty('results') && data.results) {
+
+                if (resultsCard.style.display === 'none') {
+                    resultsCard.style.display = 'block';
+                }
+                let resultsRows = data.results;
+                    console.log(resultsRows);
+                    resultsRows.forEach(result => {
+                        addAccordionItem(result);
+                    });
+
+            }
+        });
+
+        function readWordlist(){
+            const fileInput = document.getElementById('wordlistFileInput');
+            const file = fileInput.files[0]; // Get the selected file
+
+            let wordlistContent=null;
+
+            if (file) {
+                getFileData(file, function (fileData) {
+                  wordlistContent= fileData.content;
+                });
+            }
+            return wordlistContent;
+        }
+
+
+    // hide results card at init
+    resultsCard.style.display='none';
+    });
+
+</script>
+
+{% endblock content %}

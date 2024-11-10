@@ -1,0 +1,593 @@
+{% extends 'layout/main.html' %}
+
+{% import 'contents/datatable.html' as datatable %}
+
+{% block content %}
+
+<!--
+<script src="{{ url_for('static', filename='assets/extensions/simple-datatables/umd/simple-datatables.js')}}"></script>
+-->
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Fuzzer Console</h3>
+            <p class="text-subtitle text-muted">
+                Compose and send request to targets
+            </p>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Fuzzer Console
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card" id="requestEditorCard">
+        <div class="card-body">
+            <div class="form form-horizontal">
+                <div class="form-body">
+                    <div class="row mb-3">
+                        <div class="col-md-7 mb-2">
+                            <div class="form-group with-title mb-3">
+                                <textarea class="form-control" id="requestContentTextarea" rows="15" style="font-family: 'Courier New', Courier, monospace;"></textarea>
+                                <label for="requestContentTextarea">Request Content</label>
+                            </div>
+                        </div>
+                        <div class="col-md-5 mb-2">
+                            <h6>Fuzz Wordlists</h6>
+                            
+                            <fieldset class="my-3">
+                                <div class="input-group">
+                                    <label class="input-group-text" for="iteratorTypeSelect">Iterator Type</label>
+                                    <select class="form-select" id="iteratorTypeSelect">
+                                        <option value="product" default>Product Iterator</option>
+                                        <option value="zip">Zip Iterator</option>
+                                    </select>
+                                </div>
+                            </fieldset>
+                            
+                            <div class="row mb-3" id="fuzzWordlistsContainer">
+                                <ul class="list-group" id="fuzzWordlists">
+                                    <!-- New items will be added here -->
+                                </ul>
+                            </div>
+                            <div class="row">
+                                <button type="button" class="btn btn-light" id="addWordlistBtn" style="display: none;">
+                                    <i class="bi bi-plus-lg"></i>
+                                    Add Fuzz Wordlist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md d-inline-block d-flex justify-content-between">
+                            <div class="col-md-6">
+                                <h6>Match / Hide requests</h6>        
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Rate Limiting </h6>
+                            </div>
+                        </div>
+                            
+
+                    </div>
+
+                    <div class="row my-4">
+                        <h6>Show response Info</h6>
+                        <div class="d-inline-block d-flex justify-content-center">
+                            <div class="d-flex justify-content-center flex-wrap col-md-10" id="includedResponseInfoContainer">
+                                <div class="d-flex align-items-center me-3">
+                                    <input type="checkbox" id="responseStatusCheckbox" class="form-check-input" value="response-code">
+                                    <label for="responseStatusCheckbox" class="ms-1 me-3">Status Code</label>
+                                </div>
+                                <div class="d-flex align-items-center me-3">
+                                    <input type="checkbox" id="responseElapsedTimeCheckbox" class="form-check-input" value="response-elapsed-time">
+                                    <label for="responseElapsedTimeCheckbox" class="ms-1 me-3">Elapsed Time</label>
+                                </div>
+                                <div class="d-flex align-items-center me-3">
+                                    <input type="checkbox" id="responseLengthBytesCheckbox" class="form-check-input" value="length-in-bytes">
+                                    <label for="responseLengthBytesCheckbox" class="ms-1 me-3">Length in Bytes</label>
+                                </div>
+                                <div class="d-flex align-items-center me-3">
+                                    <input type="checkbox" id="responseLengthCharsCheckbox" class="form-check-input" value="length-in-chars">
+                                    <label for="responseLengthCharsCheckbox" class="ms-1 me-3">Length in Chars</label>
+                                </div>
+                                <div class="d-flex align-items-center me-3">
+                                    <input type="checkbox" id="responseLengthWordsCheckbox" class="form-check-input" value="length-in-words">
+                                    <label for="responseLengthWordsCheckbox" class="ms-1 me-3">Length in Words</label>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <input type="checkbox" id="responseLengthLinesCheckbox" class="form-check-input" value="length-in-lines">
+                                    <label for="responseLengthLinesCheckbox" class="ms-1">Length in Lines</label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md d-inline-block d-flex justify-content-between">
+                            <div class="col-md-8 d-flex align-items-start">
+                                <div class="me-3">
+                                    <button class="btn btn-outline-dark me-2" id="matchHideBtn">Match / Hide requests</button>
+                                    <button class="btn btn-outline-dark" id="rateLimitBtn">Set Rate Limiting</button>
+                                </div>
+                                <div>
+                                    <input type="number" id="numWorkersInput" class="form-control" name="fname" placeholder="Workers">
+                                </div>
+                            </div>
+                        
+                            <div class="col-md d-inline-block d-flex justify-content-end">
+                                <button type="reset" class="btn btn-outline-secondary me-2" id="resetSendRequestBtn">Reset</button>
+
+                                    <div class="btn-group dropdown dropdown-icon-wrapper">
+                                        <button type="button" class="btn btn-primary" id="startFuzzBtn">
+                                            <i class="bi bi-send"></i>
+                                            Send
+                                        </button>
+                                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a href="" id="setProxy">
+                                                <span class="dropdown-item">
+                                                    <i class="bi bi-bezier2"></i> Set Proxy
+                                                </span>
+                                            </a>
+                                            
+                                        </div>
+                                        
+                                    </div>
+                            </div>
+                        </div>
+                    </div> 
+                </div> 
+            </div>
+        </div>
+    </div>
+            
+            <button id="addRowsBtn" class="btn btn-primary">Add Rows</button>
+            
+
+        </div>
+    </div>
+
+    <div class="card" id="responsesCard">
+        <div class="card-header">
+            <h5>Responses</h5>
+        </div>
+        <div class="card-body" id="responsesCardBody">
+            <div class="row">
+                <div class="col-md d-inline-block d-flex justify-content-end">
+                    <button id="pauseResumeBtn" class="btn btn-primary" onclick="togglePauseResume()">
+                        <i class="bi bi-pause-fill"></i> Pause
+                    </button>
+                </div>
+            </div>
+            <div class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-columns">
+                <div class="dataTable-container">
+                    <table class="table table-striped dataTable-table" id="responsesTable">
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    </div>
+</section>
+
+
+<script src="{{url_for('static',filename='js/fuzzer.js')}}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('requestContentTextarea').value = {{request_content | tojson}};
+        const addWordlistBtn = document.getElementById('addWordlistBtn');
+        const requestContentTextarea = document.getElementById('requestContentTextarea');
+        const fuzzWordlistsContainer = document.getElementById('fuzzWordlistsContainer');
+
+        let matchHideData=null;
+        let rateLimitData=null;
+        let proxyData=null;
+        
+        let matches= [];
+        let processedMatches = [];
+
+        let fuzzWordlistElements= document.querySelectorAll('.wordlist');
+        function updatefuzzWordlistElements(){
+            fuzzWordlistElements = document.querySelectorAll('.wordlist');
+        }
+
+
+        // Hide the Add Wordlist button initially
+        addWordlistBtn.style.display = 'none';
+
+        // Function to check if the textarea content has valid matches
+        function checkMatches() {
+            const content = requestContentTextarea.value;
+            const regex = /\$\w+\$/g;
+            const allMatches = content.match(regex) || [];
+            
+            // Filter out already processed matches
+            matches = allMatches.filter(match => !processedMatches.includes(match));
+            console.log(matches);
+            console.log(processedMatches);
+            
+            
+            const wordlistsCount = document.querySelectorAll('.wordlist').length;
+
+            // Show the addWordlistBtn if the number of matches exceeds the wordlist count
+            if (matches.length > 0) {
+                addWordlistBtn.style.display = 'block';
+            } else {
+                addWordlistBtn.style.display = 'none';
+            }
+
+        }
+
+        // Event listener for changes in the textarea
+        requestContentTextarea.addEventListener('input', checkMatches);
+
+        // Event listener for the Add Wordlist button
+        addWordlistBtn.addEventListener('click', function () {
+            showModal('addWordlistModal', function () {
+                const fileInput = document.getElementById('wordlistFileInput');
+                const file = fileInput.files[0]; // Get the selected file
+                
+                if (file) {
+                    getFileData(file, function (fileData) {
+                        filename= fileData.filename;
+                        const matchedWord = matches[0];
+                        wordlists[matchedWord]=(fileData);
+                        console.log(wordlists);
+                        
+                        
+                        addWordlist(filename,matchedWord);
+                        updatefuzzWordlistElements();
+
+                        // Mark the first unprocessed match as processed
+                        if (matches.length > 0) {
+                            processedMatches.push(matches[0]);  // Only process the first match
+                        }
+
+                        checkMatches();
+                    });
+            }
+            });
+            });
+
+        function addWordlist(filename,matchedWord){
+            const wordlistElementsLenght=fuzzWordlistElements.length;
+            
+            const newWordlistItem = `
+                <li class="wordlist list-group-item d-flex justify-content-between align-items-center" id="fuzzWordlist${wordlistElementsLenght}">
+                    <span class="badge bg-dark badge-pill badge-round ms-1" id="usedWordlistsIndex">${matchedWord}</span>
+                    <span><button type="button" class="btn" id="fuzzWordlist${wordlistElementsLenght}Btn">${filename}</button></span>
+                    <span><button type="button" class="btn" id="removeFuzzWordlist${wordlistElementsLenght}Btn"><i class="bi bi-trash-fill"></i></button></span>
+                </li>
+            `;
+            fuzzWordlistsContainer.querySelector('ul').insertAdjacentHTML('beforeend', newWordlistItem);
+
+            // Add event listener to the remove button
+            document.getElementById(`removeFuzzWordlist${wordlistElementsLenght}Btn`).addEventListener('click', function () {
+                            document.getElementById(`fuzzWordlist${wordlistElementsLenght}`).remove();
+                            delete wordlists[matchedWord];
+                            processedMatches=processedMatches.filter(item=>item !== matchedWord);
+                            console.log(wordlists);
+                            checkMatches();
+                        });
+            // Add event listener to show the wordlist content 
+            document.getElementById(`fuzzWordlist${wordlistElementsLenght}Btn`).addEventListener('click', function () {
+                showModal('wordlistContentModal', function(){
+                });
+                
+                document.getElementById('wordlistContentTextarea').value=wordlists[matchedWord].content ;
+                console.log(wordlists);
+            });
+
+        }
+
+
+
+        // CHECKBOXES CODE
+        c=document.querySelectorAll('#includedResponseInfoContainer input[type="checkbox"]');
+        c.forEach(element => {
+            element.addEventListener('change', function(){
+                console.log(getSelectedResponseInfo('includedResponseInfoContainer'));
+            });
+            
+        });
+
+
+        /******************************************
+                      Modals Buttons              
+         * ****************************************/
+        document.getElementById('setProxy').addEventListener('click', function(){
+            showModal('setProxyModal', function(){
+                proxyData=document.getElementById('setProxyInput').value;
+            });
+        });
+
+        document.getElementById('matchHideBtn').addEventListener('click', function(){
+            showModal('matchHideModal', function(){
+                matchHideData=collectMatchHideData();
+            });
+    
+            // Event listener to add a new form group on clicking the plus button
+            document.getElementById('addMatchHideGroupBtn').addEventListener('click', function () {
+                addMatchHideGroup();
+            });
+           
+        });
+    
+        document.getElementById('rateLimitBtn').addEventListener('click', function(){
+            showModal('rateLimitModal', function(){
+                rateLimitData=collectRateLimitData();
+            });
+        });
+
+
+
+
+
+
+         /***************************************************************
+         ***************      RESPONSE TABLE SCRIPTS   ******************
+         ***************************************************************/
+        const responsesCard = document.getElementById('responsesCard');
+        let columns;
+    
+        let dataTable = new simpleDatatables.DataTable("#responsesTable");
+        tableHead= {
+            'resp-num': '#',
+            'response-code': 'Status',
+            'response-elapsed-time': 'Elapsed time',
+            'length-in-bytes': 'Len. Bytes',
+            'length-in-chars': 'Len. Chars',
+            'length-in-words': 'Len. Bytes',
+            'length-in-lines': 'Len. Lines',
+            'response-hash': 'Resp. Hash',       
+        }
+
+        let responsesCounter= 1;
+    
+    
+        // Function to render the DataTable
+        function renderDataTable(tableId, columns) {
+
+            let tableHtml = `
+                    <thead>
+                        <tr>`;
+            tableHtml += `<th>${tableHead['resp-num']}</th>`;
+            // Generate column headers
+            columns.forEach(column => {
+                tableHtml += `<th>${tableHead[column]}</th>`;
+            });
+    
+            tableHtml += `</tr>
+                    </thead>
+                    <tbody>`;
+    
+                        
+            tableHtml += `
+            </tbody>`;
+            
+            document.getElementById(tableId).innerHTML = tableHtml;
+
+                        // Generate rows
+                        /*rows.forEach(row => {
+                            tableHtml += `<tr>`;
+                            columns.forEach(column => {
+                                tableHtml += `<td>${row[column] || ''}</td>`;
+                            });
+                            tableHtml += `</tr>`;
+                        });
+                        */
+        }
+    
+        // Function to add a row to the existing DataTable
+        function addRowToDataTable(tableId, rowData, columns) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            let rowHtml = '<tr>';
+            columns.forEach(column => {
+                rowHtml += `<td>${responsesCounter}</td>`
+                responsesCounter++;
+
+                rowHtml += `<td>${rowData[column] || ''}</td>`;
+            });
+            rowHtml += '</tr>';
+    
+            // Append the new row to the table body
+            tableBody.insertAdjacentHTML('beforeend', rowHtml);
+        }
+    
+        // Remove this 
+        /*document.getElementById('addRowsBtn').addEventListener('click', function () {
+            columns = ['ID', 'Name', 'Status'];
+            const rows = [
+                { ID: 1, Name: 'John Doe', Status: 'Success' },
+                { ID: 2, Name: 'Jane Smith', Status: 'Failed' }
+            ];
+            rows.forEach(row => {
+                addRowToDataTable('responsesTable', row, columns)
+            });
+        });
+        */
+    
+        // Event listener for the button to show accordion and add DataTable
+        document.getElementById('startFuzzBtn').addEventListener('click', function () {
+
+            data=collectFuzzData();
+            console.log(data);
+            
+            //Emitting to start fuzz 
+            fuzzerSocket.emitMessage('start_fuzz', data);
+
+            // columns collcting from checkboxes checked 
+            columns = getSelectedResponseInfo('includedResponseInfoContainer');
+            console.log(columns);
+            
+
+            // showing and rendering table
+            if (responsesCard.style.display === 'none') {
+                responsesCard.style.display = 'block';
+            }
+            renderDataTable('responsesTable',columns);
+
+
+            fuzzerSocket.onMessage('fuzz_responses', function (data) {
+                if (data.responses !== undefined){
+                    let responsesRows = data.responses;
+                    console.log(responsesRows);
+                    responsesRows.forEach(row => {
+                        addRowToDataTable('responsesTable', row, columns)
+                    });
+
+                }
+
+                
+            });
+    
+        });
+    
+        // Initial responses card should be hidden
+        responsesCard.style.display = 'none';
+
+
+
+
+
+
+
+        /*****************************************
+         * ************ RESET BUTTON ************
+         * **************************************/
+        document.getElementById("resetSendRequestBtn").addEventListener("click", function () {
+            // Clear text areas and input fields
+            document.getElementById("requestContentTextarea").value = '';
+            document.getElementById("numWorkersInput").value = '';
+        
+        
+            // Get the ul element containing the wordlist items
+            const wordlistsUList = document.getElementById('fuzzWordlists');
+        
+            
+            // Remove each li element within the ul
+            while (wordlistsUList.firstChild) {
+                wordlistsUList.removeChild(wordlistsUList.firstChild);
+            }
+        
+            // Clear related variables
+            wordlists = {};  // Reset the wordlists object
+            processedMatches = [];  // Clear the processedMatches array
+            
+            
+            // Uncheck all checkboxes
+            document.querySelectorAll('#includedResponseInfoContainer .form-check-input').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        
+            // Remove all items from fuzz wordlist if any
+            //document.getElementById("fuzzWordlist").innerHTML = '';
+        });
+
+
+
+        
+        /*********************************************
+         *               Pause Resume Code           *
+         * *******************************************/
+    
+        let isPaused = false; // Track whether the system is currently paused
+    
+        // Function to handle button click and emit "pause" or "resume" command
+        function togglePauseResume() {
+            const button = document.getElementById('pauseResumeBtn');
+            
+            // Show loading spinner and disable the button while waiting for server response
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+            button.disabled = true;
+            
+            // Emit the appropriate command based on current state
+            const action = isPaused ? 'resume' : 'pause';
+            
+            fuzzerSocket.emitMessage('pause_resume', {change_status: action});
+            
+            fuzzerSocket.onMessage('pause_resume_status', function(data) {
+                if (data.is_paused !== undefined) {
+                    isPaused = data.is_paused; 
+                    console.log('ispawzed: '+isPaused);
+                     
+    
+                    if (isPaused) {
+                        button.innerHTML = '<i class="bi bi-play-fill"></i> Resume';
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-outline-primary');  // Optional styling change for resume
+                    } else {
+                        button.innerHTML = '<i class="bi bi-pause-fill"></i> Pause';
+                        button.classList.remove('btn-outline-primary');
+                        button.classList.add('btn-primary');
+                    }
+            
+                    // Re-enable the button once state update is received
+                    button.disabled = false;
+    
+                }
+            });
+    
+    
+        }
+
+
+
+    });
+
+
+   
+            
+   
+
+
+    
+
+
+
+
+
+
+
+   
+   
+
+
+
+
+
+
+
+    // Socket.io listener for new data
+    /*
+    socket.on('newRowData', function (newRowData) {
+        const columns = ['ID', 'Name', 'Status'];  // Ensure this matches the structure of the data
+        addRowToDataTable('responsesTable', newRowData, columns);
+    });
+    */
+
+
+</script>
+
+
+{% endblock content %}

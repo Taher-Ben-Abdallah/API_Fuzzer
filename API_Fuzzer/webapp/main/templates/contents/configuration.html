@@ -1,0 +1,189 @@
+{% extends 'layout/main.html' %}
+
+
+{% block content %}
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Configuration</h3>
+            <p class="text-subtitle text-muted">
+                Configure and adjust API fuzzer settings
+            </p>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Configuration
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card">
+        <div class="card-body">
+            <form action="" class="form form-horizontal">
+                <div class="row">
+
+                    <div class="col-md d-inline-block">
+                        <div class="col-sm-12 d-flex justify-content-end">
+                            <button type="button" class="btn" id="showConfigEditorBtn">Write Configuration</button>
+                        </div>
+
+                        <h6>Fuzz Engine</h6>
+                        <div class="col-md-3 d-inline-block me-2">
+                            <div class="form-group mb-4">
+                                <label for="workersConfigInput">Workers</label>
+                                <input type="text" class="form-control" id="workersConfigInput" placeholder="3">
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-inline-block me-2">
+                            <div class="form-group mb-4">
+                                <label for="rateLimitConfigInput">Rate Limit</label>
+                                <input type="text" class="form-control" id="rateLimitConfigInput" placeholder="">
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-inline-block me-2">
+                            <div class="form-group mb-4">
+                                <label for="concurrencyConfigInput">Concurrency Limit</label>
+                                <input type="text" class="form-control" id="concurrencyConfigInput" placeholder="">
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-inline-block me-2">
+                            <div class="form-group mb-4">
+                                <label for="timeoutConfigInput">Request Timeout</label>
+                                <input type="text" class="form-control" id="timeoutConfigInput" placeholder="">
+                            </div>
+                        </div>
+                        <div class="col-md-3 d-inline-block me-2">
+                            <div class="form-group mb-4">
+                                <label for="proxyConfigInput">Proxy</label>
+                                <input type="text" class="form-control" id="proxyConfigInput" placeholder="">
+                            </div>
+                        </div>
+
+                        <h6>Request Content</h6>
+                        <div class="col-md-12 d-inline-block">
+                            <div class="form-group mb-4">
+                                <label for="headersConfigTextArea">Headers</label>
+                                <textarea class="form-control" id="headersConfigTextArea" placeholder=""></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-12 d-inline-block">
+                            <div class="form-group mb-4">
+                                <label for="paramsConfigTextArea">Params</label>
+                                <textarea class="form-control" id="paramsConfigTextArea" placeholder=""></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md d-inline-block">
+                            <div class="form-group mb-4">
+                                <label for="cookiesConfigInput">Cookies</label>
+                                <input type="text" class="form-control" id="cookiesConfigInput" placeholder="">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6 d-inline-block">
+                        <div class="mb-3" id="configEditorContainer">
+                            <div class="col-sm-12 d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-outline-primary" id="loadConfigFileBtn">Load From File</button>
+                            </div>
+                            <div class="form-group with-title">
+                                <label for="configEditorTextArea">Configuration Editor</label>
+                                <textarea class="form-control" id="configEditorTextArea" rows="20"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                <div class="row">
+                    <div class="col-sm-12 d-flex justify-content-end">
+                        <button type="reset" class="btn btn-light-secondary me-2" id="resetConfigBtn">
+                            Reset
+                        </button>
+                        <button type="button" class="btn btn-primary" id="applyConfigBtn"> Apply Configuration
+                        </button>
+                    </div>
+                </div>
+
+
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+</section>
+
+<script src="{{url_for('static',filename='js/configuration.js')}}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const showConfigEditorBtn = document.getElementById('showConfigEditorBtn');
+        const configEditorContainer = document.getElementById('configEditorContainer');
+        const configEditorTextArea= document.getElementById('configEditorTextArea');
+        const applyConfigBtn = document.getElementById('applyConfigBtn');
+        let isConfigEditorVisible = false;
+
+        // Hide the configuration editor initially
+        configEditorContainer.style.display = 'none';
+
+        // Show configuration editor when the button is clicked
+        showConfigEditorBtn.addEventListener('click', function () {
+            if (!isConfigEditorVisible) {
+                configEditorContainer.style.display = 'block';
+                isConfigEditorVisible = true;
+            }
+        });
+
+        
+
+        document.getElementById('loadConfigFileBtn').addEventListener('click',function (event) {
+            showModal('loadConfigModal', function () {
+            const fileInput = document.getElementById('configFileInput');
+            const file = fileInput.files[0]; // Get the selected file
+            
+            if (file) {
+                getFileData(file, function (fileData) {
+                    filename= fileData.filename;
+                    content= fileData.content;
+                    console.log(filename,content);
+                    configEditorTextArea.value=content;
+                });
+            }
+        });
+                
+            
+        })
+
+
+        document.getElementById("configEditorTextArea").placeholder = 
+        `request:
+            headers:
+                - Host: "localhost"
+                - User-Agent: "Mozilla/5.0 (Macintosh)"
+            cookies:
+                - session_id: "12345"
+            analysis:
+                - length_in_bytes
+                - length_in_words
+            match_hide:
+                - regex_pattern_1
+                - regex_pattern_2
+        fuzz_engine:
+            workers: 4
+            timeout: 20
+        `;
+    });
+
+
+</script>
+
+{% endblock content %}

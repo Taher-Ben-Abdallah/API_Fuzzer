@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+
+{% block main %}
+
+<header>
+    <nav class="navbar navbar-expand navbar-light navbar-top" style="padding:0">
+        <div class="container-fluid">
+            <a href="#" class="burger-btn d-block">
+                <i class="bi bi-justify fs-3"></i>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+</header>
+<div id="main-content">
+    <div class="page-heading">
+
+        {% block content %} {% endblock content %}
+
+    </div>
+</div>
+
+{% endblock main %}

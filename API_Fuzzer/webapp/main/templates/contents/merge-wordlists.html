@@ -1,0 +1,306 @@
+{% extends 'layout/main.html' %}
+
+{% block content %}
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Wordlist Merger</h3>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Merge Wordlists
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <form class="form form-horizontal">
+
+                    <div class="row">
+                        <div class="col-md d-inline-block">
+                            <div class="form-group mb-4">
+                                <label>Wordlists</label>
+                                <div id="wordlistContainer">
+
+                                    <button type="button" class="btn btn-outline-secondary" id="addWordlistBtn">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" id="deleteWordlistBtn"
+                                        style="display: none;">
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                    
+
+                    <div class="row">
+                        <div class="col-md-6 d-inline-block">
+                            <fieldset>
+                                <div class="input-group">
+                                    <label class="input-group-text" for="mergeTypeSelect">Merge Type</label>
+                                    <select class="form-select" id="mergeTypeSelect">
+                                        <option value="chain" selected="">Chain Merge</option>
+                                        <option value="product">Product Merge</option>
+                                        <option value="zip">Zip Merge</option>
+                                    </select>
+                                </div>
+
+                            </fieldset>
+                        </div>
+                        
+                        <div class="col-md-2 d-inline-block" >
+
+                            <div id="separatorContainer">
+                            <select class="form-select" id="mergeSeparatorSelect">
+                                <option  value="," selected="">Comma  ,</option>
+                                <option value="\t" >Tab  \t</option>
+                                <option value=";">Semicolon  ;</option>
+                                <option value=":">Colon  :</option>
+                                <option value="|">Pipe  |</option>
+                                <option value=" ">(space)</option>
+                            </select>                        
+                        </div>
+                        </div>
+
+                            
+
+                        
+
+                        <div class="col-md d-inline-block d-flex justify-content-end">
+                            <button type="reset" class="btn btn-outline-secondary me-1" id="resetMergeBtn">Reset</button>
+                            <button type="button" class="btn btn-primary" id="mergeBtn">
+                                <i class="bi bi-exclude"></i>
+                                Merge Wordlists
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+            <small class="text-muted merge-details" id="chainDetail">
+                <b> Chain Example: </b> <i> [[1, 2], ['a', 'b'], ['x', 'y']] ==> [1,'a','x',2, 'b', 'y'] </i>
+            </small>
+            <small class="text-muted merge-details" id="zipDetail">
+                <b> Zip Example: </b> <i> [[1, 2], ['a', 'b'], ['x', 'y']] ==> [(1,'a','x'),(2, 'b', 'y')] </i>
+            </small>
+            <small class="text-muted merge-details" id="productDetail">
+                <b>Product Example: </b> <i> [[1, 2], ['a', 'b']] ==> [(1, 'a'),(1, 'b'),(2,'a'), (2, 'b')]</i>
+            </small>
+
+            <div class="row" id="resultsRow">
+                <div class="col-md d-inline-block d-flex justify-content-end my-2">
+                    <button type="submit" class="btn btn-outline-primary" id="saveWordlistBtn">
+                        <i class="bi bi-file-earmark-check"></i> Save Wordlist
+                    </button>
+                </div>
+                <div class="form-group with-title mb-3 ">
+                    
+                    <textarea class="form-control" id="mergedWordlistsResultTextarea" rows="12"></textarea>
+                    <label for="mergedWordlistsResultTextarea">Merged Wordlists Result</label>
+                
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="{{url_for('static',filename='js/merge-wordlists.js')}}"></script>
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeSelect = document.getElementById('mergeTypeSelect');
+        const typeDetails = document.querySelectorAll('.merge-details');
+
+        typeSelect.addEventListener('change', function () {
+            const selectedType = typeSelect.value;
+
+            typeDetails.forEach(detail => {
+                if (detail.id.includes(selectedType)) {
+                    detail.style.display = 'block';
+                } else {
+                    detail.style.display = 'none';
+                }
+            });
+
+            if (selectedType === 'product' || selectedType ==='zip'){
+                document.getElementById('separatorContainer').style.display = 'block';
+            }else{
+                document.getElementById('separatorContainer').style.display = 'none';
+            }
+        });
+
+        // Initial check
+        typeSelect.dispatchEvent(new Event('change'));
+    });
+
+
+
+    /**** CODE FOR ADDING DELETING WORDLISTS ****/
+    document.addEventListener('DOMContentLoaded', function () {
+        const wordlistContainer = document.getElementById('wordlistContainer');
+        let wordlistCount = 0;
+        let wordlistFields= document.querySelectorAll('.wordlist-button');;
+        
+        
+        function updateWordlistFields(){
+            wordlistFields = document.querySelectorAll('.wordlist-button');
+            wordlistFields.forEach((wordlistField, index) => {
+                wordlistField.addEventListener('click', function() {
+                    showModal('wordlistContentModal', function(){
+                    });
+                    document.getElementById('wordlistContentTextarea').value=wordlistsList[index].content ;
+                });
+            });
+
+        }
+
+        // Function to create a new wordlist input field
+        function createWordlistField() {
+            wordlistCount += 1;
+
+            const div = document.createElement('div');
+            div.classList.add('col-md', 'd-inline-block', 'wordlist-button', 'me-1');
+
+            const wordlistField = document.createElement('button');
+            wordlistField.type = 'button';
+            wordlistField.classList.add('btn','btn-outline-primary');
+            wordlistField.id = `wordlistField${wordlistCount}`;
+            wordlistField.innerHTML = wordlistsList[wordlistCount-1].filename;
+
+            div.appendChild(wordlistField);
+
+            return div;
+        }
+
+        // Function to create a delete button
+        function createDeleteButton() {
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.id = 'deleteWordlistBtn';
+            deleteButton.classList.add('btn', 'btn-outline-danger');
+            deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+
+            return deleteButton;
+        }
+
+            
+        document
+        .getElementById('addWordlistBtn')
+        .addEventListener('click', function (event) {
+            //event.preventDefault();
+
+            showModal('addWordlistModal', function () {
+            const fileInput = document.getElementById('wordlistFileInput');
+            const file = fileInput.files[0]; // Get the selected file
+            
+            if (file) {
+                getFileData(file, function (fileData) {
+                    filename= fileData.filename;
+                    wordlistsList.push(fileData);
+                    console.log(wordlistsList);
+                    
+                    //Adding wordlist to display
+                    const newField = createWordlistField();
+                    wordlistContainer.insertBefore(
+                    newField,
+                    document.querySelector('#addWordlistBtn')
+                    );
+                    updateWordlistFields();
+
+                    if (document.getElementsByClassName('wordlist-button').length > 0) {
+                    document.querySelector('#deleteWordlistBtn').style.display =
+                        'inline-block';
+                    }
+                });
+                
+
+            }
+            });
+
+            
+        });
+
+        // Event listener for delete button
+        document.querySelector('#deleteWordlistBtn').addEventListener('click', function () {
+            //const inputs = wordlistContainer.getElementsByClassName('wordlist-button');
+            if (wordlistFields.length > 0) {
+                wordlistFields[wordlistFields.length - 1].remove();
+                updateWordlistFields();
+                wordlistsList.pop();
+                wordlistCount -= 1;
+
+                console.log("Wrdlistcount" + wordlistCount + "    Inputcount:" + wordlistFields.length);
+                if (wordlistFields.length === 0) {
+                    document.querySelector('#deleteWordlistBtn').style.display = 'none';
+                }
+            }
+        });
+
+        // Initial delete button setup
+        if (document.getElementsByClassName('wordlist-button').length > 1) {
+            document.querySelector('#deleteWordlistBtn').style.display = 'inline-block';
+        }
+
+
+        // Reset Form Action ( also Deletes wordlists)
+        document.querySelector('#resetMergeBtn').addEventListener('click', function () {
+            const inputs = wordlistContainer.getElementsByClassName('wordlist-button');
+            while (wordlistFields.length > 0) {
+                wordlistFields[inputs.length - 1].remove();
+                updateWordlistFields();
+                wordlistCount -= 1;
+                console.log("Wrdlistcount" + wordlistCount + "    Inputcount:" + wordlistFields.length);
+            }
+            document.querySelector('#deleteWordlistBtn').style.display = 'none';
+
+        });
+
+    });
+    /***************************************************/
+
+
+    /**** Merge Button Action & reset ****/
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const mergeButton = document.getElementById('mergeBtn');
+        const resultsRow = document.getElementById('resultsRow');
+        const separatorContainer = document.getElementById('separatorContainer');
+
+        // Initially hide the resultsRow
+        resultsRow.style.display = 'none';
+        separatorContainer.style.display = 'none';
+
+        // Show the resultsRow when the merge button is clicked
+        mergeButton.addEventListener('click', function() {
+            resultsRow.style.display = 'block';
+        });
+    });
+
+    /******************************/ 
+
+
+
+
+</script>
+
+
+{% endblock content %}

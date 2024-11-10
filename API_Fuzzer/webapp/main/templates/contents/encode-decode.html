@@ -1,0 +1,90 @@
+{% extends 'layout/main.html' %}
+
+{% block content %}
+
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Encoder / Decoder</h3>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Encoder Decoder
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 d-inline-block">
+                    <form class="form form-horizontal">
+                        <div class="row">
+                            <div class="form-body">
+                                <div class="col-md-7 d-inline-block">
+                                    <fieldset class="form-group">
+                                        <div class="input-group">
+                                            <label class="input-group-text" for="inputGroupSelect01">Format</label>
+                                            <select class="form-select" id="formatSelect">
+                                                <option selected>Base64</option>
+                                                <option>Urlencode</option>
+                                                <option>HTML Entities</option>
+                                                <option>MD5</option>
+                                                <option>SHA1</option>
+                                                <option>Brotli</option>
+                                                <option>Deflate</option>
+                                                <option>Gzip</option>
+                                            </select>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div class="col-md d-inline-block">
+                                    <fieldset class="form-group">
+                                        <select class="form-select" id="encdecSelect">
+                                            <option>Encode</option>
+                                            <option>Decode</option>
+                                        </select>
+                                    </fieldset>
+                                </div>
+
+                                <div class="col-md d-inline-block">
+                                    <button type="submit" class="btn btn-primary" id="getResultBtn"> Get Result</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="form-group with-title mb-3">
+                        <textarea class="form-control" id="encdecTextArea" rows="15"></textarea>
+                        <label>Input Values to encode / decode</label>
+                    </div>
+
+                    </form>
+                </div>
+
+                <div class="col-md-6 d-inline-block">
+                    <div class="form-group with-title mb-3">
+                        <textarea class="form-control" id="encdecResultTextarea" rows="17"></textarea>
+                        <label>Result</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+</section>
+
+
+<script src="{{url_for('static',filename='js/encode-decode.js')}}"></script>
+{% endblock content %}
