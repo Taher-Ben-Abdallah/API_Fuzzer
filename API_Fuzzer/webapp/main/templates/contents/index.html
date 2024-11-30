@@ -1,0 +1,322 @@
+{% extends 'layout/main.html' %}
+
+
+{% block content %}
+
+
+<div class="page-title">
+  <div class="row">
+    <div class="col-12 col-md-6 order-md-1 order-last">
+      <h3>Fuzzing Session</h3>
+      <p class="text-subtitle text-muted">
+        Keeping track of operations and config events withtin a session
+      </p>
+    </div>
+    <div class="col-12 col-md-6 order-md-2 order-first">
+      <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{{url_for('main.index')}}">Dashboard</a>
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+<section class="section">
+  <div class="card">
+    <!--
+    <div class="card-header">
+      <h4 class="card-title">About Vertical Navbar</h4>
+    </div>
+    -->
+    <div class="card-body text-center my-4">
+      <div class="row" id="">
+        <h4 class="" id="sessionName"></h4>
+        <div class="" id="sessionInvokersContainer">
+          <!-- Large button for Create Session -->
+          <button id="createSessionBtn" class="btn btn-primary btn-lg m-2">
+            <i class="bi bi-play-circle"></i> Create Session
+          </button>
+          
+          <!-- Large button for Load Session -->
+          <button id="loadSessionBtn" class="btn btn-secondary btn-lg m-2">
+            <i class="bi bi-folder2-open"></i> Load Session
+          </button>
+        </div>
+      </div>
+      <div class="" id="sessionActionsContainer">
+        <div class="d-flex justify-content-center align-items-center">
+          <!-- Hidden buttons for Start Session and End Session -->
+          <button id="startStopSessionActionBtn" class="btn btn-outline-dark  m-2">
+            Start Session
+          </button>
+          <button id="saveSessionActionBtn" class="btn btn-outline-success m-2">
+            Save Session
+          </button>
+          <button id="removeSessionActionBtn" class="btn btn-outline-danger m-2"">
+            Remove Session
+          </button>
+        </div>
+      </div>
+
+      <!-- Display session name after starting/loading a session -->
+      <div id="sessionInfoContainer" class=" mt-4 ">
+        
+        <h5 id="sessionStatus"></h5>
+          <ul class="list-group" id="sessionOperations">
+            
+          </ul>
+      </div>
+
+  </div>
+  </div>
+  
+</section>
+<script src="{{url_for('static',filename='js/session.js')}}"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    const sessionInvokers = document.getElementById('sessionInvokersContainer');
+    const sessionInfo = document.getElementById("sessionInfoContainer");
+    const sessionActions= document.getElementById('sessionActionsContainer');
+
+    const sessionNameDisplay = document.getElementById("sessionName");
+    const createSessionBtn = document.getElementById("createSessionBtn");
+    const loadSessionBtn = document.getElementById("loadSessionBtn");
+    
+    const startStopSessionActionBtn = document.getElementById("startStopSessionActionBtn");
+    const saveSessionActionBtn = document.getElementById("saveSessionActionBtn");
+    const removeSessionActionBtn = document.getElementById("removeSessionActionBtn");
+    
+    const sessionStatus = document.getElementById('sessionStatus');
+    const sessionOperations = document.getElementById('sessionOperations');
+
+    let isActive= false;
+
+
+
+    function loadOperations(ulElement, operations) {
+      // Clear existing list items
+      ulElement.innerHTML = '';
+
+      // Loop through operations and create list items
+      operations.forEach(operation => {
+          // Format timestamp if needed (example: use toLocaleString())
+          const formattedTimestamp = new Date(operation.timestamp).toLocaleString();
+
+          // Create list item elements
+          const liElement = document.createElement('li');
+          liElement.className = 'list-group-item d-flex justify-content-start align-items-center';
+
+          const timestampSpan = document.createElement('span');
+          timestampSpan.className = 'badge bg-warning badge-pill badge-round ms-1 me-3 operation-timestamp';
+          timestampSpan.textContent = formattedTimestamp;
+
+          const detailSpan = document.createElement('span');
+          detailSpan.className = 'operation-detail';
+          detailSpan.textContent = operation.type;
+
+          // Append spans to the list item
+          liElement.appendChild(timestampSpan);
+          liElement.appendChild(detailSpan);
+
+          // Append list item to the <ul>
+          ulElement.appendChild(liElement);
+      });
+    }
+
+
+    //START FIRST WITH CHECKING IF THERE'S SESSION
+    sessionSocket.emitMessage('get_session_status');
+    sessionSocket.onMessage('session_status', function(data){
+      console.log('status returned');
+      
+      const status = data.status;
+      console.log(status);
+
+      if (status === 'no_session') {
+        console.log('No session');
+        
+        sessionNameDisplay.textContent= 'No session available';
+        sessionActions.style.display='none';
+        sessionInfo.style.display='none';
+      } 
+      else{
+        sessionNameDisplay.textContent= data.session_name;
+        sessionInvokers.style.display='none'; 
+
+        removeSessionActionBtn.style.display='block';
+
+        if (data.session_operations){
+          loadOperations(sessionOperations,data.session_operations)
+        }
+      }
+      if (status === 'active_session') {
+          isActive=true;
+          startStopSessionActionBtn.textContent= 'Stop Session';
+          sessionStatus.textContent = 'Session is active';  
+      } 
+      else if (status === 'inactive_session') {
+        isActive=false;
+        startStopSessionActionBtn.textContent= 'Start Session';
+        sessionStatus.textContent = 'Session is inactive';
+      }
+    });
+
+
+
+    // Open Start Session Modal
+    createSessionBtn.addEventListener("click", function() {
+      showModal('createSessionModal', function () {
+              let sessionName=document.getElementById('sessionNameInput').value.trim();
+              let data={
+                session_name:sessionName,
+              }
+
+              sessionSocket.emitMessage('start_session',data)
+              sessionSocket.onMessage('session_started',function (data) {
+                if (data.hasOwnProperty('message') && data.hasOwnProperty('session_operations')) {
+                  let operations= data.session_operations;
+                  console.log(operations);
+                  
+                  sessionNameDisplay.innerText = sessionName;
+                  loadOperations(sessionOperations, operations);
+
+                  startStopSessionActionBtn.textContent= 'Stop Session';
+                  removeSessionActionBtn.style.display='block';
+
+                  sessionInfo.style.display = "block";
+                  sessionActions.style.display = "block";
+
+                }else {
+                  console.log('The result is empty or does not exist.');
+                }
+              })
+
+            })
+        
+    });
+
+
+    // Open Load Session Modal
+    loadSessionBtn.addEventListener("click", function() {
+      let data ={};
+      showModal('loadSessionModal', function () {
+        const fileInput = document.getElementById('loadSessionFileInput');
+        const file = fileInput.files[0]; // Get the selected file
+        
+        if (file) {
+            getFileData(file, function (fileData) {
+              filename= fileData.filename;
+              content= fileData.content;
+
+              data.loaded_session= content;
+
+              sessionSocket.emitMessage('load_session',data);
+            });
+        }
+      });
+
+      sessionSocket.onMessage('session_loaded',function (data) {
+        if (data.hasOwnProperty('message') && data.hasOwnProperty('session_operations') && data.hasOwnProperty('session_name')) {
+          let operations= data.session_operations;
+          let sessionName= data.session_name;
+
+          console.log(operations);
+          console.log(sessionName);
+
+          sessionNameDisplay.innerText = sessionName;
+          loadOperations(sessionOperations, operations);
+          
+          console.log(isActive);
+          startStopSessionActionBtn.textContent= 'Start Session';
+          removeSessionActionBtn.style.display='block';
+
+
+          sessionInvokers.style.display = "none";
+          sessionInfo.style.display = "block";
+          sessionActions.style.display = "block";
+
+          
+        } else {
+          console.log('The result is empty or does not exist.');
+        }
+
+      });
+        
+    });
+
+   
+    // Start Session Action Button
+    startStopSessionActionBtn.addEventListener("click", function() {
+        // Show End Session button and hide Start Session button
+        if (isActive) {
+          sessionSocket.emitMessage('end_session');
+          sessionSocket.onMessage('session_ended',function(data){
+            
+          });
+        }
+        else{
+          data=null;
+          if (sessionNameDisplay.textContent){
+            data={session_name: sessionName} ;
+          }
+          sessionSocket.emitMessage('start_session',data);
+          sessionSocket.onMessage('session_started',function(data){
+            
+          });
+
+        }
+
+        isActive= !isActive;
+        startStopSessionActionBtn.textContent= isActive ? 'Stop Session': 'Start Session';
+    });
+
+    // save Session Action Button
+    saveSessionActionBtn.addEventListener("click", function() {
+
+      sessionSocket.emitMessage('save_session');
+      sessionSocket.onMessage('session_save', function(data) {
+        if (data.session_data !== undefined) {
+          const sessionObjectString = JSON.stringify(data.session_data, null, 2);
+          sessionFilename= sessionNameDisplay.innerText+'.json';
+          saveTextAsFile(sessionObjectString, sessionFilename);
+
+          isActive= false;
+          startStopSessionActionBtn.textContent= isActive ? 'Stop Session': 'Start Session';
+
+          sessionInvokers.style.display='block'; 
+        }
+      });
+
+      
+    });
+
+
+    // remove session Action Btn
+    removeSessionActionBtn.addEventListener('click', function() {
+      sessionSocket.emitMessage('remove_session');
+      sessionSocket.onMessage('session_removed', function(data) {
+        
+        sessionNameDisplay.textContent = '';
+        sessionStatus.textContent= '';
+        sessionOperations.innerHTML='';
+
+        removeSessionActionBtn.style.display='none';
+
+        sessionInvokers.style.display='block';
+        sessionActions.style.display='none';
+        sessionInfo.style.display='none';
+
+      });
+
+    });
+});
+
+</script>
+{% endblock content %}

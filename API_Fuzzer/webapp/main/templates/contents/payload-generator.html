@@ -1,0 +1,247 @@
+{% extends 'layout/main.html' %}
+
+{% block content %}
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Payload Generator</h3>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Payload Generator
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card">
+        <div class="card-header d-flex justify-content-end">
+
+            <div>
+                <button class="btn btn-outline-primary me-2" id="savePayloadsBtn" data-bs-toggle="modal" data-bs-target="#savePayloadsModal"><i
+                        class="bi bi-file-earmark-check" disabled></i> Save
+                    Wordlist</button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-7 d-inline-block">
+                    <form class="form form-horizontal">
+                        <div class="form-body ">
+                            <div class="row">
+                                <div class="col-md-8  d-inline-block">
+                                    <fieldset class="form-group">
+                                        <div class="input-group">
+                                            <label class="input-group-text" for="inputGroupSelect01">Payloads
+                                                Type</label>
+                                            <select class="form-select" id="typeSelect">
+                                                <option value="string" selected>String</option>
+                                                <option value="integer">Integer</option>
+                                                <option value="float">Float</option>
+                                                <option value="boolean">Boolean</option>
+                                                <option value="array">Array</option>
+                                                <option value="object">Object</option>
+                                            </select>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div class="col-md-4 d-inline-block">
+                                    <div class="form-group"><input type="text" class="form-control" id="basicInput"
+                                            placeholder="Number of Payloads">
+                                        <small class="text-muted">Deafult: <i>200</i></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider">
+                            <div class="divider-text">Generation Details</div>
+                        </div>
+
+                        <!--NUMBER GEN DETAILS -->
+                        <div class="type-details" id="integerfloatDetails">
+                            <div class="row">
+                                <div class="col-md d-inline-block">
+                                    <div class="form-group mb-4">
+
+                                        <label>Max Value</label>
+                                        <input type="text" class="form-control" id=""
+                                            placeholder="Maximum Number value ">
+                                    </div>
+                                </div>
+                                <div class="col-md d-inline-block">
+                                    <div class="form-group mb-4">
+                                        <label>Min Value</label>
+                                        <input type="text" class="form-control" id=""
+                                            placeholder="Minimum Number Value">
+                                    </div>
+                                </div>
+                                <div class="col-md d-inline-block">
+                                    <div class="form-group mb-4">
+                                        <label>Multiple of</label>
+                                        <input type="text" class="form-control" id="" placeholder="example: 2.5">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--STRING GEN DETAILS -->
+                        <div class="type-details" id="stringDetails">
+                            <div class="row">
+                                <div class="col-md-12 d-inline-block">
+                                    <fieldset class="form-group">
+                                        <label>Format</label>
+                                        <select class="form-select" id="typeSelect">
+                                            <option value="" disabled selected hidden>Select Format</option>
+                                            <option>Date</option>
+                                            <option>Date-time</option>
+                                            <option>Email</option>
+                                            <option>IPv4 adress</option>
+                                            <option>IPv6 adress</option>
+                                            <option>Hostname</option>
+                                            <option>Byte (base64)</option>
+                                        </select>
+                                    </fieldset>
+                                </div>
+                                <div class="col-md d-inline-block">
+                                    <div class="form-group mb-4">
+                                        <label>Min length</label>
+                                        <input type="text" class="form-control" id=""
+                                            placeholder="Minimum String length">
+                                    </div>
+                                </div>
+                                <div class="col-md d-inline-block">
+                                    <div class="form-group mb-4">
+                                        <label>Max Length</label>
+                                        <input type="text" class="form-control" id=""
+                                            placeholder="Maximum String Lenght ">
+                                    </div>
+                                </div>
+                                <div class="col-md d-inline-block">
+                                    <div class="form-group mb-4">
+                                        <label>Follow Regex</label>
+                                        <input type="text" class="form-control" id="" placeholder='r"(\w+)([\W+^\s])"'>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="type-details" id="booleanDetails">
+                            <div class="row">
+                                <p>boolean details</p>
+                            </div>
+                        </div>
+
+                        <div class="type-details" id="arrayDetails">
+                            <div class="row">
+                                <p>array details</p>
+                            </div>
+                        </div>
+
+                        <div class="type-details" id="objetcDetails">
+                            <div class="row">
+                                <p>object details</p>
+                            </div>
+                        </div>
+
+
+
+                        <div class="row mb-4">
+                            <div class="form-check d-flex justify-content-end">
+                                <div class="checkbox"><input type="checkbox" id="invalidValuesCheckbox"
+                                        class="form-check-input" value="Invalid Values"><label
+                                        for="invalidValuesCheckbox">Generate Invalid Values</label></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 d-flex justify-content-end">
+
+
+                            <button type="reset" class="btn btn-light-secondary me-2" id="resetGenBtn">
+                                Reset
+                            </button>
+                            <button type="button" class="btn btn-primary" id="generatePayloadsBtn"> Generate payloads </button>
+
+
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-5 d-inline-block">
+                    <div class="form-group mb-3">
+                        <label>Generated Payloads</label>
+                        <textarea class="form-control" id="payloadGenTextArea" rows="20"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+
+
+        </div>
+    </div>
+</section>
+
+
+
+
+<script src="{{url_for('static',filename='js/payload-generator.js')}}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeSelect = document.getElementById('typeSelect');
+        const typeDetails = document.querySelectorAll('.type-details');
+
+        typeSelect.addEventListener('change', function () {
+            const selectedType = typeSelect.value;
+
+            typeDetails.forEach(detail => {
+                if (detail.id.includes(selectedType)) {
+                    detail.style.display = 'block';
+                } else {
+                    detail.style.display = 'none';
+                }
+            });
+        });
+
+        // Initial check
+        typeSelect.dispatchEvent(new Event('change'));
+    });
+
+
+    /**** Generate Payloads Button Action ****/
+    document.addEventListener('DOMContentLoaded', function() {
+        const generateBtn = document.getElementById('generatePayloadsBtn');
+        const resetGenBtn = document.getElementById('resetGenBtn');
+        const saveBtn = document.getElementById('savePayloadsBtn');
+
+        // Initially hide the resultsRow
+        saveBtn.style.display = 'none';
+
+        // Show the resultsRow when the merge button is clicked
+        generateBtn.addEventListener('click', function() {
+            
+            // CODE TO EMIT TO THE SCRIPT AND Show results HERE 
+
+            saveBtn.style.display = 'block';
+        });
+
+        resetGenBtn.addEventListener('click', function() {
+            saveBtn.style.display = 'none';
+        });
+    });
+    /******************************/ 
+
+</script>
+
+{% endblock content %}

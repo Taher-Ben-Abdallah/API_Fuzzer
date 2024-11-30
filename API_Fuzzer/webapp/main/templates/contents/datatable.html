@@ -1,0 +1,26 @@
+{% macro render_datatable(table_id, columns,rows) %}
+<div class="dataTable-wrapper dataTable-loading no-footer sortable searchable fixed-columns">
+    <div class="dataTable-container">
+        <table class="table table-striped dataTable-table" id="{{table_id}}">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows%}
+                <tr>
+                    {% for column in columns %}
+                    <td>{{ row[column] }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                <!-- The data will be added dynamically -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endmacro %}

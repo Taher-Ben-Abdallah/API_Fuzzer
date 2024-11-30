@@ -1,0 +1,32 @@
+# Ignore virtual environment folder
+venv/
+
+# Ignore IDE-specific folders
+.idea/
+.vscode/
+
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore configuration files
+*.env
+*.ini
+*.log
+
+# Ignore Docker-related files (if any)
+*.dockerignore
+Dockerfile
+
+# Ignore any other unwanted folders
+*/node_modules/
+*/dist/
+
+# Ignore pytest cache
+.cache/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+.hypothesis

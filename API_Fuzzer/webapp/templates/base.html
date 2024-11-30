@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Fuzzer - Forvis Mazars</title>
+
+  <link rel="shortcut icon" href="{{ url_for ('static', filename='assets/compiled/png/favicon.png') }}"
+    type="image/png" />
+
+
+
+  <link rel="stylesheet" href="{{ url_for ('static', filename='assets/compiled/css/app.css') }}" />
+  <link rel="stylesheet" href="{{ url_for ('static', filename='assets/compiled/css/app-dark.css') }}" />
+  <link rel="stylesheet" href="{{ url_for ('static', filename='assets/compiled/css/iconly.css') }}" />
+
+
+  <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+
+
+
+  <!-- My custom Style  -->
+  <style>
+    .my-hidden {
+      display: none;
+    }
+  </style>
+
+</head>
+
+<body>
+  <script src="../static/assets/static/js/initTheme.js"></script>
+   <!--SocketIO inclusion and connection -->
+   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+   <script src="{{url_for('static',filename='js/socket-connection.js')}}"></script>
+   <script src="{{url_for('static',filename='js/file-handling.js')}}"></script>
+   <script src="{{url_for('static',filename='js/modal.js')}}"></script>
+
+
+  <div id="app">
+    {% include 'layout/sidebar.html' %}
+
+    <div id="main">
+      {% block main %}{% endblock %}
+      {% include 'layout/footer.html' %}
+    </div>
+
+  </div>
+
+
+
+  <script src="{{ url_for ('static', filename='assets/static/js/components/dark.js') }}"></script>
+  <script
+    src="{{ url_for ('static', filename='assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
+
+  <script src="{{ url_for ('static', filename='assets/compiled/js/app.js') }}"></script>
+
+  
+
+ 
+
+</body>
+
+</html>

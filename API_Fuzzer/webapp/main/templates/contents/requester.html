@@ -1,0 +1,819 @@
+{% extends 'layout/main.html' %}
+
+
+{% block content %}
+
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Requester</h3>
+            <p class="text-subtitle text-muted">
+                Compose and send request to targets
+            </p>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Requester
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card">
+        <div class="card-body">
+
+            <form class="form form-horizontal">
+                <div class="row form-group">
+
+                    <div class="col-md  d-inline-block">
+                        <fieldset>
+                            <div class="input-group">
+                                <label class="input-group-text" for="methodselect">Method</label>
+                                <select class="form-select " id="methodSelect">
+                                    <option value="GET" selected="">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="DELETE">DELETE</option>
+                                    <option value="HEAD">HEAD</option>
+                                    <option value="OPTIONS">OPTIONS</option>
+                                    <option value="TRACE">TRACE</option>
+                                    <option value="CONNECT">CONNECT</option>
+                                </select>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-7 d-inline-block">
+                        <input type="text" class="form-control" id="urlInput" placeholder="https://google.com">
+                    </div>
+                    <div class="col-md d-inline-block d-flex justify-content-end">
+                        <button type="reset" class="btn btn-outline-secondary me-2"
+                            id="resetSendRequestBtn">Reset</button>
+
+                            <div class="btn-group dropdown dropdown-icon-wrapper">
+                                <button type="button" class="btn btn-primary" id="sendRequestBtn">
+                                    <i class="bi bi-send"></i>
+                                    Send
+                                </button>
+                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a href="#" id="forwardToFuzzer">
+                                        <span class="dropdown-item">
+                                            <i class="bi bi-lightning"></i> Send To Fuzzer
+                                        </span>
+                                    </a>
+                                    <a href="" id="setProxy">
+                                        <span class="dropdown-item">
+                                            <i class="bi bi-bezier2"></i> Set Proxy
+                                        </span>
+                                    </a>
+                                    
+                                </div>
+                                
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <ul class="nav nav-tabs mb-4" id="requestDetailsTablist" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="query-params-tab" data-bs-toggle="tab" href="#query-params"
+                                role="tab" aria-controls="query-params" aria-selected="true">Query Params</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="auth-tab" data-bs-toggle="tab" href="#auth" role="tab"
+                                aria-controls="auth" aria-selected="false" tabindex="-1">Authorization</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="headers-tab" data-bs-toggle="tab" href="#headers" role="tab"
+                                aria-controls="headers" aria-selected="false" tabindex="-1">Headers</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="body-tab" data-bs-toggle="tab" href="#body" role="tab"
+                                aria-controls="body" aria-selected="false" tabindex="-1">Body</a>
+                        </li>
+                    </ul>
+
+
+                    <div class="tab-content" id="requestDetailsContent">
+
+
+                        <!-- QUERY PARAMS TAB  -->
+                        <div class="tab-pane fade show active" id="query-params" role="tabpanel"
+                            aria-labelledby="query-params-tab">
+                            <div class="row" id="queryParamsContainer">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div class="input-group" id="queryParam1">
+                                        <input type="text" aria-label="Key" class="form-control" placeholder="Key">
+                                        <input type="text" aria-label="Value" class="form-control" placeholder="Value">
+                                    </div>
+
+
+                                    <button type="button" class="btn" id="paramDeleteBtn1"><i
+                                            class="bi bi-trash3-fill"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="row" style="padding: 12px;">
+                                <button type="button" class="btn btn-light" id="addQueryParamBtn"><i
+                                        class="bi bi-plus-lg"></i></button>
+                            </div>
+
+                        </div>
+
+
+
+
+                        <!-- AUTH TAB  -->
+                        <div class="tab-pane fade" id="auth" role="tabpanel" aria-labelledby="auth-tab">
+                            <div class="row mb-4">
+
+                                <fieldset>
+                                    <label>Auth Type</label>
+                                    <select class="form-select" id="authTypeSelect">
+                                        <option value="" selected="">No Auth</option>
+                                        <option value="basicAuth">Basic Auth</option>
+                                        <option value="bearerAuth">Bearer Auth</option>
+                                        <option value="digestAuth">Digest Auth</option>
+                                        <option value="apiKeyAuth">API Key Auth</option>
+                                        <option value="jwtGenAuth">JWT Auth | Generate Token </option>
+                                        <option value="jwtUseAuth">JWT Auth | Use Token</option>
+                                        <option value="ntlmAuth">NTLM Auth</option>
+                                        <option value="customAuth">Custom</option>
+                                    </select>
+                                </fieldset>
+                            </div>
+
+                            <div class="row auth-container" id="basicAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="basicAuthUsernameInput">Username</label>
+                                        <input type="text" id="basicAuthUsernameInput" class="form-control"
+                                            placeholder="Username">
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="basicAuthPasswordInput">Password
+                                            <input type="text" id="basicAuthPasswordInput" class="form-control"
+                                                placeholder="Password">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row auth-container" id="bearerAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="bearerAuthInput">Bearer Token</label>
+                                        <input type="text" id="bearerAuthInput" class="form-control"
+                                            placeholder="Token">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row auth-container" id="digestAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="digestAuthUsernameInput">Username</label>
+                                        <input type="text" id="digestAuthUsernameInput" class="form-control"
+                                            placeholder="Username">
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="digestAuthPasswordInput">Password
+                                            <input type="text" id="digestAuthPasswordInput" class="form-control"
+                                                placeholder="Password">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row auth-container" id="apiKeyAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="apiKeyAuthKeyInput">Key</label>
+                                        <input type="text" id="apiKeyAuthKeyInput" class="form-control"
+                                            placeholder="Key">
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="apiKeyAuthValueInput">Value</label>
+                                        <input type="text" id="apiKeyAuthValueInput" class="form-control"
+                                            placeholder="Value">
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label>Add To</label>
+                                        <select class="form-select" id="apiKeyAuthLocationSelect">
+                                            <option value="headers" selected="">Headers</option>
+                                            <option value="params">Query Params</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row auth-container" id="jwtGenAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label>Algorithm</label>
+                                        <select class="form-select" id="jwtGenAuthAlgoSelect">
+                                            <option value="HS256">HS256 - HMAC using SHA-256</option>
+                                            <option value="HS384">HS384 - HMAC using SHA-384</option>
+                                            <option value="HS512">HS512 - HMAC using SHA-512</option>
+                                            <option value="RS256">RS256 - RSASSA-PKCS1-v1_5 using SHA-256</option>
+                                            <option value="RS384">RS384 - RSASSA-PKCS1-v1_5 using SHA-384</option>
+                                            <option value="RS512">RS512 - RSASSA-PKCS1-v1_5 using SHA-512</option>
+                                            <option value="ES256">ES256 - ECDSA using P-256 curve and SHA-256</option>
+                                            <option value="ES384">ES384 - ECDSA using P-384 curve and SHA-384</option>
+                                            <option value="ES512">ES512 - ECDSA using P-521 curve and SHA-512</option>
+                                            <option value="PS256">PS256 - RSASSA-PSS using SHA-256</option>
+                                            <option value="PS384">PS384 - RSASSA-PSS using SHA-384</option>
+                                            <option value="PS512">PS512 - RSASSA-PSS using SHA-512</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="jwtGenAuthKeyInput">Secret</label>
+                                        <input type="text" id="jwtGenAuthSecretInput" class="form-control"
+                                            placeholder="Key">
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-12">
+                                    <div class="form-group">
+                                        <label for="jwtGenAuthPayloadTextarea">Payload</label>
+                                        <textarea id="jwtGenAuthPayloadTextarea" class="form-control"
+                                            placeholder="Payload"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row auth-container" id="jwtUseAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label for="jwtUseAuthTokenInput">Token</label>
+                                        <textarea id="jwtUseAuthTokenInput" class="form-control" placeholder="Token"
+                                            spellcheck="false" rows="4"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row auth-container" id="ntlmAuthContainer">
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label>Domain</label>
+                                        <input type="text" id="ntlmAuthDomainInput" class="form-control"
+                                            placeholder="Domain">
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label>Username</label>
+                                        <input type="text" id="ntlmAuthUsernameInput" class="form-control"
+                                            placeholder="Username">
+                                    </div>
+                                </div>
+                                <div class="col-md col-12">
+                                    <div class="form-group">
+                                        <label>Password</label>
+                                        <input type="text" id="ntlmAuthPasswordInput" class="form-control"
+                                            placeholder="Password">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row auth-container" id="customAuthContainer">
+                            <div class="col-md col-12">
+                                <div class="form-group">
+                                    <div class="input-group" id="customAuthHeader">
+                                        <input type="text" id="customAuthHeaderKeyInput" aria-label="Key"
+                                            class="form-control" placeholder="Key">
+                                        <input type="text" id="customAuthHeaderValueInput" aria-label="Value"
+                                            class="form-control" placeholder="Value">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <!-- HEADERS TAB  -->
+                        <div class="tab-pane fade" id="headers" role="tabpanel" aria-labelledby="headers-tab">
+
+                            <div class="row" id="headersContainer">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div class="input-group" id="header1">
+                                        <input type="text" aria-label="Key" class="form-control" placeholder="Key">
+                                        <input type="text" aria-label="Value" class="form-control" placeholder="Value">
+                                    </div>
+
+
+                                    <button type="button" class="btn" id="headerDeleteBtn1"><i
+                                            class="bi bi-trash3-fill"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="row" style="padding: 12px;">
+                                <button type="button" class="btn btn-light" id="addHeaderBtn"><i
+                                        class="bi bi-plus-lg"></i></button>
+                            </div>
+
+                        </div>
+
+
+                        <!-- BODY TAB  -->
+                        <div class="tab-pane fade" id="body" role="tabpanel" aria-labelledby="body-tab">
+                            <div class="row">
+                                <fieldset>
+                                    <label>Format</label>
+                                    <select class="form-select" id="bodyFormatSelect">
+                                        <option value="" disabled="" selected="" hidden="">Select Format</option>
+                                        <option value="json">JSON</option>
+                                        <option value="xml">XML</option>
+                                        <option value="form-urlencoded">Form-urlencoded</option>
+                                        <option value="form-data">Form-data</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </fieldset>
+                                <div class="form-group mb-3">
+                                    <label for="exampleFormControlTextarea1" class="form-label">Body Content</label>
+                                    <textarea class="form-control" id="bodyContent" rows="5"
+                                        spellcheck="false"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="card" id="responsesCard">
+        <div class="card-header">
+            <h5>Responses</h5>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="responseAccordion">
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="{{url_for('static',filename='js/requester.js')}}"></script>
+<script>
+    let queryParamCount = 1;
+    let headerCount = 1;
+
+
+    /****   QUERY PARAMS ACTIONS   ****/
+    document.addEventListener('DOMContentLoaded', function () {
+
+        document.getElementById('addQueryParamBtn').addEventListener('click', function () {
+            queryParamCount++;
+            const newQueryParamDiv = document.createElement('div');
+            newQueryParamDiv.className = 'd-flex justify-content-between mb-2';
+            newQueryParamDiv.innerHTML = `
+            <div class="input-group" id="queryParam${queryParamCount}">
+                <input type="text" aria-label="Key" class="form-control" placeholder="Key">
+                <input type="text" aria-label="Value" class="form-control" placeholder="Value">
+            </div>
+            <button type="button" class="btn" id="paramDeleteBtn${queryParamCount}">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        `;
+
+            // Add delete functionality to the new button
+            newQueryParamDiv.querySelector(`#paramDeleteBtn${queryParamCount}`).addEventListener('click', function () {
+                newQueryParamDiv.remove();
+            });
+
+            document.getElementById('queryParamsContainer').appendChild(newQueryParamDiv);
+        });
+
+        // Add delete functionality to the initial button
+        document.getElementById('paramDeleteBtn1').addEventListener('click', function () {
+            document.getElementById('queryParam1').parentElement.remove();
+        });
+    });
+
+
+    /****   HEADERS ACTIONS   ****/
+    document.addEventListener('DOMContentLoaded', function () {
+
+        document.getElementById('addHeaderBtn').addEventListener('click', function () {
+            headerCount++;
+            const newHeaderDiv = document.createElement('div');
+            newHeaderDiv.className = 'd-flex justify-content-between mb-2';
+            newHeaderDiv.innerHTML = `
+            <div class="input-group" id="header${headerCount}">
+                <input type="text" aria-label="Key" class="form-control" placeholder="Key">
+                <input type="text" aria-label="Value" class="form-control" placeholder="Value">
+            </div>
+            <button type="button" class="btn" id="headerDeleteBtn${headerCount}">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        `;
+
+            // Add delete functionality to the new button
+            newHeaderDiv.querySelector(`#headerDeleteBtn${headerCount}`).addEventListener('click', function () {
+                newHeaderDiv.remove();
+            });
+
+            document.getElementById('headersContainer').appendChild(newHeaderDiv);
+        });
+
+        // Add delete functionality to the initial button
+        document.getElementById('headerDeleteBtn1').addEventListener('click', function () {
+            document.getElementById('header1').parentElement.remove();
+        });
+    });
+
+
+    /**** BODY ACTION ***/
+    document.addEventListener('DOMContentLoaded', function () {
+        const bodyFormatSelect = document.getElementById('bodyFormatSelect');
+        const bodyContent = document.getElementById('bodyContent');
+        const headersContainer = document.getElementById('headersContainer');
+
+        function updateContentTypeHeader(value) {
+            let contentTypeHeaderExists = false;
+            const headers = headersContainer.querySelectorAll('.input-group');
+            headers.forEach(header => {
+                const keyInput = header.querySelector('input[aria-label="Key"]');
+                const valueInput = header.querySelector('input[aria-label="Value"]');
+                if (keyInput && keyInput.value.toLowerCase() === 'content-type') {
+                    valueInput.value = value;
+                    contentTypeHeaderExists = true;
+                }
+            });
+            // If the Content-Type header doesn't exist, create it
+            if (!contentTypeHeaderExists) {
+                const newHeaderDiv = document.createElement('div');
+                newHeaderDiv.className = 'd-flex justify-content-between mb-2';
+                newHeaderDiv.innerHTML = `
+                <div class="input-group">
+                    <input type="text" aria-label="Key" class="form-control" placeholder="Key" value="Content-Type">
+                    <input type="text" aria-label="Value" class="form-control" placeholder="Value" value="${value}">
+                </div>
+                <button type="button" class="btn">
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
+            `;
+                headersContainer.appendChild(newHeaderDiv);
+            }
+        }
+
+
+
+        bodyFormatSelect.addEventListener('change', function () {
+            switch (bodyFormatSelect.value) {
+                case 'json':
+                    bodyContent.value = '{\n\t"key": "value"\n}';
+                    updateContentTypeHeader('application/json');
+                    break;
+                case 'xml':
+                    bodyContent.value = '<data>\n\t<key>value</key>\n</data>';
+                    updateContentTypeHeader('application/xml');
+                    break;
+                case 'form-urlencoded':
+                    bodyContent.value = 'key1=value1\nkey2=value2';
+                    updateContentTypeHeader('multipart/form-data');
+                    break;
+                case 'form-data':
+                    bodyContent.value = 'key1:value1\nkey2:value2';
+                    updateContentTypeHeader('application/x-www-form-urlencoded');
+                    break;
+                default:
+                    bodyContent.value = '';
+                    updateContentTypeHeader('');
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const authTypeSelect = document.getElementById('authTypeSelect');
+        const authContainers = document.querySelectorAll('.auth-container');
+
+        function hideAllAuthContainers() {
+            authContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+        }
+
+        authTypeSelect.addEventListener('change', function () {
+            hideAllAuthContainers();
+
+            const selectedAuthType = authTypeSelect.value;
+            if (selectedAuthType) {
+                const selectedContainer = document.getElementById(selectedAuthType + 'Container');
+                if (selectedContainer) {
+                    selectedContainer.style.display = 'flex';
+                }
+            }
+        });
+
+        // Initial hide of all auth containers
+        hideAllAuthContainers();
+    });
+
+
+
+    /********* SEND REUEST BUTTON ACTION *********/
+    document.addEventListener('DOMContentLoaded', function () {
+        let proxy=null;
+        let responseCount = 0;
+        const responsesCard = document.getElementById('responsesCard');
+
+        function collectRequestData() {
+            const method = document.getElementById('methodSelect').value;
+            const url = document.getElementById('urlInput').value;
+
+            // Collect query params
+            const queryParams = {};
+            document.querySelectorAll('#queryParamsContainer .input-group').forEach(group => {
+                const key = group.querySelector('input[aria-label="Key"]').value;
+                const value = group.querySelector('input[aria-label="Value"]').value;
+                if (key) {
+                    queryParams[key] = value;
+                }
+            });
+
+            // Collect headers
+            const headers = {};
+            document.querySelectorAll('#headersContainer .input-group').forEach(group => {
+                const key = group.querySelector('input[aria-label="Key"]').value;
+                const value = group.querySelector('input[aria-label="Value"]').value;
+                if (key) {
+                    headers[key] = value;
+                }
+            });
+
+            // Collect body content
+            const bodyFormat = document.getElementById('bodyFormatSelect').value;
+            const bodyContent = document.getElementById('bodyContent').value;
+
+            // Collect authentication info
+            const authType = document.getElementById('authTypeSelect').value;
+            let authInfo = null;
+            switch (authType) {
+                case 'basicAuth':
+                    const basicUsername = document.getElementById('basicAuthUsernameInput').value;
+                    const basicPassword = document.getElementById('basicAuthPasswordInput').value;
+                    authInfo = {
+                        auth_mode: 'Basic-auth',
+                        credentials:{
+                            username: basicUsername,
+                            password: basicPassword
+                        },
+                    };
+                    break;
+                case 'bearerAuth':
+                    const bearerToken = document.getElementById('bearerAuthInput').value;
+                    authInfo = {
+                        auth_mode: 'Bearer-auth',
+                        credentials:{
+                            token: bearerToken
+                        },
+                    };
+                    break;
+                case 'digestAuth':
+                    const digestUsername = document.getElementById('digestAuthUsernameInput').value;
+                    const digestPassword = document.getElementById('digestAuthPasswordInput').value;
+                    authInfo = {
+                        auth_mode: 'Digest-auth',
+                        credentials:{
+                            username: digestUsername,
+                            password: digestPassword
+                        },
+                    };
+                    break;
+                case 'apiKeyAuth':
+                    const apiKey = document.getElementById('apiKeyAuthKeyInput').value;
+                    const apiValue= document.getElementById('apiKeyAuthValueInput').value;
+                    const apiLocation= document.getElementById('apiKeyAuthLocationSelect').value;
+                    authInfo = {
+                        auth_mode: 'API-key-auth',
+                        credentials:{
+                            name: apiKey,
+                            value: apiValue,
+                            location: apiLocation
+                        },
+                    };
+                    break;
+
+                case 'jwtGenAuth':
+                    authInfo = {
+                        auth_mode: 'JWT-auth',
+                        credentials:{
+                            action: 'generate-jwt',
+                            token_info: {
+                                algorithm: document.getElementById('jwtGenAuthAlgoSelect').value,
+                                secret: document.getElementById('jwtGenAuthSecretInput').value,
+                                payload: document.getElementById('jwtGenAuthPayloadTextarea').value,
+                            }
+                        },
+                    };
+                    break;
+
+                case 'jwtUseAuth':
+                    const jwtToken = document.getElementById('jwtAuthTokenInput').value;
+                    authInfo = {
+                        auth_mode: 'JWT-auth',
+                        credentials:{
+
+                        },
+                        action: 'use-jwt',
+                        token_info: document.getElementById('jwtUseAuthTokenInput').value,
+                    };
+                    break;
+                case 'ntlmAuth':
+                    const ntlmDomain = document.getElementById('ntlmAuthDomainInput').value;
+                    const ntlmUsername = document.getElementById('ntlmAuthUsernameInput').value;
+                    const ntlmPassword = document.getElementById('ntlmAuthPasswordInput').value;
+                    authInfo = {
+                        auth_mode: 'NTLM-auth',
+                        credentials:{
+                            domain: ntlmDomain,
+                            username: ntlmUsername,
+                            password: ntlmPassword
+                        },
+                    };
+                    break;
+                case 'customAuth':
+                    authInfo = {
+                        auth_mode: '"Custom-auth"',
+                        credentials:{
+                            header_key: document.getElementById('customAuthHeaderKeyInput').value,
+                            header_value: document.getElementById('customAuthHeaderValueInput').value,
+                        },
+                    }
+                    break;
+            }
+
+            return JSON.stringify({
+                method: method,
+                url: url,
+                params: queryParams,
+                headers: headers,
+                //content: bodyFormat ? { format: bodyFormat, body: bodyContent } : '',
+                content: bodyContent ? bodyContent : '',
+                auth: authInfo
+            });
+        }
+
+        
+
+        function addAccordionItem(responseContent) {
+            responseCount++;
+            const accordionHeaderId = `heading${responseCount}`;
+            const accordionCollapseId = `collapse${responseCount}`;
+            const sendToAnalyzerBtnId = `sendToAnalyzerBtn${responseCount}`;
+            const responseTextareaId = `responseTextarea${responseCount}`;
+
+            // Close all existing accordion items
+            const allButtons = document.querySelectorAll('#responseAccordion .accordion-button');
+            const allCollapseElements = document.querySelectorAll('#responseAccordion .accordion-collapse');
+            allButtons.forEach(function (button) {
+                button.classList.add('collapsed');
+                button.setAttribute('aria-expanded', 'false');
+            });
+            allCollapseElements.forEach(function (collapseElement) {
+                collapseElement.classList.remove('show');
+            });
+
+            // Create the new accordion item with the Send To Analyzer button
+            const newAccordionItem = `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="${accordionHeaderId}">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionCollapseId}" aria-expanded="true" aria-controls="${accordionCollapseId}">
+                            Response #${responseCount}
+                        </button>
+                    </h2>
+                    <div id="${accordionCollapseId}" class="accordion-collapse collapse show" aria-labelledby="${accordionHeaderId}" data-bs-parent="#responseAccordion">
+                        <div class="accordion-body">
+                            <textarea class="form-control" id="${responseTextareaId}" rows="10" disabled style="font-family: 'Courier New', Courier, monospace;">${responseContent}</textarea>
+                            <button id="${sendToAnalyzerBtnId}" class="btn mt-3">Send To Analyzer</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Append the new accordion item to the accordion container
+            document.getElementById('responseAccordion').insertAdjacentHTML('beforeend', newAccordionItem);
+
+            // Add an event listener to the new Send To Analyzer button
+            document.getElementById(sendToAnalyzerBtnId).addEventListener('click', function () {
+                const responseContent = document.getElementById(responseTextareaId).value;
+                console.log(responseContent);
+                // Send the data via a POST request
+                fetch('/response-analyser', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": 'application/json'
+                    },
+                    body: JSON.stringify({ response_content: responseContent })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Redirect the user to the new URL provided by Flask
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+                
+                
+            });
+        }
+
+
+        document.getElementById('sendRequestBtn').addEventListener('click', function () {
+            const requestData = collectRequestData();
+            console.log(requestData); 
+            const data = {
+                request_data: requestData
+            };
+            if (proxy){
+                data.proxy=proxy;
+            }
+            requesterSocket.emitMessage('send_request', data);
+            console.log('emitted');
+            
+
+            
+        });
+        requesterSocket.onMessage('send_request_result', function (data) {
+            console.log(data);
+            
+            if (data.hasOwnProperty('response') && data.response) {
+
+                if (responsesCard.style.display === 'none') {
+                    responsesCard.style.display = 'block';
+                }
+                addAccordionItem(data.response);
+            }
+        });
+
+        document.getElementById('forwardToFuzzer').addEventListener('click', function(event){
+            event.preventDefault();
+
+            const reqData = collectRequestData();  // Call this to gather data from the form
+            //const requestString = createRequestString(reqData);
+
+            console.log(reqData);
+            
+
+             // Send the data via a POST request
+            fetch('/fuzzer', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": 'application/json'
+                },
+                body: JSON.stringify({ data:reqData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                
+                // Redirect the user to the new URL provided by Flask
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                }
+            })
+            .catch(error => console.error('error:', error));
+
+
+        });
+
+        document.getElementById('setProxy').addEventListener('click', function(event){
+            event.preventDefault();
+            showModal('setProxyModal', function () {
+                proxy= document.getElementById('setProxyInput').value;
+            })
+
+        });
+
+
+
+
+        // Initial responses card should be hidden
+        responsesCard.style.display = 'none';
+    });
+
+
+
+
+</script>
+
+
+{% endblock content %}

@@ -1,0 +1,147 @@
+{% extends 'layout/main.html' %}
+
+{% block content %}
+
+<div class="page-title">
+    <div class="row">
+        <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Response Analyzer</h3>
+        </div>
+        <div class="col-12 col-md-6 order-md-2 order-first">
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{url_for('main.index')}}">API Fuzzer</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Response Analyzer
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="card">
+        <div class="card-body">
+            <form class="form form-horizontal">
+                <div class="form-body ">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <div class="col-sm-12 d-flex justify-content-end">
+                                <button type="reset" class="btn btn-light-secondary me-1 mb-1">
+                                    Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary me-1 mb-1" id="analyseResponseBtn">
+                                    Analyse response
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <div class="form-group with-title mb-3">
+                                <textarea class="form-control" id="responseContentTextarea" rows="20" style="font-family: 'Courier New', Courier, monospace;"></textarea>
+                                <label>Response Content</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <h4>Analysis results</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="bytesInfo">
+                                    <span> Bytes </span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="charsInfo">
+                                    <span> Characters </span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="wordsInfo">
+                                    <span> Words</span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="linesInfo">
+                                    <span> Lines</span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="contentInfo">
+                                    <span> Contents</span>
+                                    <div class="justify-content-end" id="contentBadges"></div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="serverInfo">
+                                    <span> Server Info </span>
+                                    <div class="justify-content-end" id="serverBadges">
+                                        <span class="badge bg-secondary badge-pill badge-round ms-1" id="serverType"></span>
+                                        <span class="badge bg-secondary badge-pill badge-round ms-1" id="serverVersion"></span>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="authInfo">
+                                    <span> Authentication </span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1" id="authTechnique"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="securityMeasures">
+                                    <span> Security Measures </span>
+                                    <div class="justify-content-end" id="securityBadges"></div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center analysis-info" id="rateLimiting">
+                                    <span> Rate Limiting </span>
+                                    <div class="justify-content-end" id="rateLimitBadges">
+                                        <span class="badge bg-secondary badge-pill badge-round ms-1" id="rateLimit"></span>
+                                        <span class="badge bg-secondary badge-pill badge-round ms-1" id="rateRemaining"></span>
+                                        <span class="badge bg-secondary badge-pill badge-round ms-1" id="rateReset"></span>
+                                    </div>
+                                </li>
+                                
+                                <!--
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span> Bytes </span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1">8</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span> Characters </span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1">7</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span> Words</span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1">6</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Lines</span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1">5</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Contents</span>
+                                    <div class="justify-content-end">
+                                        <span class="badge bg-light-primary">e-mails</span>
+                                        <span class="badge bg-light-primary">Credit card details</span>
+                                    </div>
+
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Lines</span>
+                                    <span class="badge bg-secondary badge-pill badge-round ms-1">5</span>
+                                </li>
+                                -->
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+</section>
+<script src="{{url_for('static',filename='js/response-analyser.js')}}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("responseContentTextarea").value={{ response_content|tojson }};
+    // Initially hide all analysis-info elements
+    document.querySelectorAll('.analysis-info').forEach(item => {
+        item.style.display = 'none';
+    });
+    });
+</script>
+
+{% endblock content %}
