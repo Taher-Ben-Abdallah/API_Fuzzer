@@ -172,7 +172,7 @@
                         <h2 class="accordion-header" id="${accordionHeaderId}">
                             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionCollapseId}" aria-expanded="true" aria-controls="${accordionCollapseId}">
                                <span class="badge bg-light-primary me-3" id="${statusCodeBadgeId}">${resultData.status_code}</span>
-                               <span class=""  id="${endpointPathId}"> </span>
+                               <span class=""  id="${endpointPathId}"> ${resultData.endpoint}</span>
                             </button>
                         </h2>
                         <div id="${accordionCollapseId}" class="accordion-collapse collapse show" aria-labelledby="${accordionHeaderId}" data-bs-parent="#responseAccordion">
@@ -212,6 +212,83 @@
             }
         }
 
+        // Event listener for the button to show accordion and add DataTable
+        document.getElementById('runDiscoveryBtn').addEventListener('click', function () {
+            const resultsRows = [
+                    { 
+                        "status_code": 200, 
+                        "endpoint": "http://127.0.0.1:4444/api/users", 
+                        "request": "GET http://127.0.0.1:4444/api/users HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 301, 
+                        "endpoint": "http://127.0.0.1:4444/api/login", 
+                        "request": "POST http://127.0.0.1:4444/api/login HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 403, 
+                        "endpoint": "http://127.0.0.1:4444/api/admin", 
+                        "request": "GET http://127.0.0.1:4444/api/admin HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 401, 
+                        "endpoint": "http://127.0.0.1:4444/api/profile", 
+                        "request": "GET http://127.0.0.1:4444/api/profile HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 200, 
+                        "endpoint": "http://127.0.0.1:4444/api/posts", 
+                        "request": "GET http://127.0.0.1:4444/api/posts HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 301, 
+                        "endpoint": "http://127.0.0.1:4444/api/upload", 
+                        "request": "POST http://127.0.0.1:4444/api/upload HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 403, 
+                        "endpoint": "http://127.0.0.1:4444/api/delete", 
+                        "request": "DELETE http://127.0.0.1:4444/api/delete HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 401, 
+                        "endpoint": "http://127.0.0.1:4444/api/auth", 
+                        "request": "POST http://127.0.0.1:4444/api/auth HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 200, 
+                        "endpoint": "http://127.0.0.1:4444/api/comments", 
+                        "request": "GET http://127.0.0.1:4444/api/comments HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 301, 
+                        "endpoint": "http://127.0.0.1:4444/api/register", 
+                        "request": "POST http://127.0.0.1:4444/api/register HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 403, 
+                        "endpoint": "http://127.0.0.1:4444/api/reports", 
+                        "request": "GET http://127.0.0.1:4444/api/reports HTTP/1.1" 
+                    },
+                    { 
+                        "status_code": 401, 
+                        "endpoint": "http://127.0.0.1:4444/api/settings", 
+                        "request": "PUT http://127.0.0.1:4444/api/settings HTTP/1.1" 
+                    }
+                ];
+
+            
+            if (resultsCard.style.display === 'none') {
+                    resultsCard.style.display = 'block';
+                }
+            
+            resultsRows.forEach(result => {
+                    addAccordionItem(result);
+                });
+            
+        });
+
+        /*  !!!  WORKING CODE !!!
 
         // Event listener for the button to show accordion and add DataTable
         document.getElementById('runDiscoveryBtn').addEventListener('click', function () {
@@ -239,6 +316,7 @@
 
             }
         });
+    */
 
         function readWordlist(){
             const fileInput = document.getElementById('wordlistFileInput');

@@ -53,7 +53,7 @@ class FuzzWorker:
     async def process_requests(self):
         # Get the next URL from the queue
         async with self.request_queue:
-            print("BEFORE QUEUE EMPTY CHECK  *** QSIZE:  " + str(self.request_queue.qsize()))
+            #print("BEFORE QUEUE EMPTY CHECK  *** QSIZE:  " + str(self.request_queue.qsize()))
             while not self.request_queue.empty():
                 print("getting request")
                 request, auth = await self.request_queue.get()
@@ -79,7 +79,7 @@ class FuzzWorker:
 
         print("no more responses")
         # Response queue stops loading when sending requests is over
-        self.response_queue.is_loading = not self.response_queue.is_loading
+        self.response_queue.is_loading = False #not self.response_queue.is_loading
 
     '''async def work(self):
         print("starting worker method ")
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         print("Request queue populated.")
 
 
-    async def runit(req_list, rate_lim, conc_lim=None, threads=None):
+    async def runit(req_list, rate_lim=None, conc_lim=None, threads=None):
 
         req = Requester()
 
@@ -178,12 +178,19 @@ if __name__ == '__main__':
         response_queue = ResponseQueue()
 
         print("instantiating ratelimiter")
-        r_lim = RateLimiter(rate_limit=rate_lim, concurrency_limit=conc_lim)
+        r_lim = RateLimiter(rate_limit=rate_lim, concurrency_limit=conc_lim) if rate_lim is not None else None
 
         # Start the queue population in the background
-        populate_task = asyncio.create_task(populate_queue(request_queue, req_list))
+        #populate_task = asyncio.create_task(populate_queue(request_queue, req_list))
+        await populate_queue(request_queue, req_list)
 
-        # Start the workers
+        fuzz_worker = FuzzWorker(request_queue=request_queue, response_queue=response_queue,
+                                 requester_client=req, rate_limiter=r_lim,
+                                 response_analyser=None, plugin_func=None)
+        tasks = [fuzz_worker.work() for _ in range(threads)]
+        await asyncio.gather(*tasks)
+
+        '''# Start the workers
         worker_task = asyncio.create_task(worker(
             rate_limiter=r_lim,
             request_queue=request_queue,
@@ -191,9 +198,11 @@ if __name__ == '__main__':
             response_analyser=None,
             response_queue=response_queue
         ))
+        
+        
 
         # Wait for all tasks to complete
-        await asyncio.gather(populate_task, worker_task)
+        await asyncio.gather(populate_task, worker_task)'''
 
         # await request_queue.populate(req_list)
         # await worker(request_queue=request_queue, response_queue=response_queue,response_analyser=None, rate_limiter=r_lim, requester_client=req)
@@ -327,9 +336,20 @@ if __name__ == '__main__':
 
     # ==>works but there's a getter error (check debugger)
     # asyncio.run(runit(req_list=reqs_auth, rate_lim=50, conc_lim=4, threads=3))
-    asyncio.run(runit(req_list=[reqs_auth[0]] * 500, rate_lim=150, threads=3))
+    asyncio.run(runit(req_list=[req_lst[0]] * 3000, rate_lim=None, threads=20))
     end_time = time.time() - start_time
     print("total time elapsed : ", end_time)
+
+
+
+
+
+
+
+
+
+
+
 
     """
         async def worker_fun(self,even):

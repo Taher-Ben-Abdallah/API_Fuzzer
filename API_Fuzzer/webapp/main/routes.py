@@ -31,17 +31,20 @@ def fuzzer_forwarding():
     # Check for required fields
     if not (request_data.get('method', None) and request_data.get('url', None)):
         return jsonify({"error": "Missing required data in the request"}), 400
-    try:
-        from webapp import fuzzer_conf
-        req, auth = RequestBuilder(config=fuzzer_conf).build_request(req_dict=request_data)
-        if auth is not None:
-            # auth_flow generates requests with authentication
-            auth_generator = auth.auth_flow(request=req)
-            temp_forwards['request_to_fuzzer'] = Requester.reconstruct_request(next(auth_generator))
-        else:
-            temp_forwards['request_to_fuzzer'] = Requester.reconstruct_request(req)
-    except Exception:
-        return jsonify({"error": "Something went wrong when creating the request string"}), 400
+    # try:
+    from webapp import fuzzer_conf
+    req, auth = RequestBuilder(
+        config=fuzzer_conf).build_request(req_dict=request_data)
+    if auth is not None:
+        # auth_flow generates requests with authentication
+        auth_generator = auth.auth_flow(request=req)
+        temp_forwards['request_to_fuzzer'] = Requester.reconstruct_request(
+            next(auth_generator))
+    else:
+        temp_forwards['request_to_fuzzer'] = Requester.reconstruct_request(
+            req)
+    # except Exception:
+    #    return jsonify({"error": "Something went wrong when creating the request string"}), 400
 
     return jsonify({'redirect_url': url_for('main.fuzzer')}), 200
 

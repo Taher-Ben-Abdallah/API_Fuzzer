@@ -1,6 +1,7 @@
 //Initialising the interface socket
 const discoverySocket = new Socket('/endpoint-discovery');
 
+/*
 document
   .getElementById('uploadFileBtn')
   .addEventListener('click', function (event) {
@@ -18,12 +19,9 @@ document
       }
     });
   });
+*/
 
-function collectDiscoveryData(
-  rateLimitData,
-  matchHideData,
-  proxyData
-) {
+function collectDiscoveryData(rateLimitData, matchHideData, proxyData) {
   let data = {};
   data.path = document.getElementById('pathInput').value;
   data.depth = document.getElementById('depthInput').value;

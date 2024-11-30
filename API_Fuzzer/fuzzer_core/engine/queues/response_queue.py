@@ -51,11 +51,11 @@ class ResponseQueue(Queue):
             except QueueEmpty:
                 if self.is_loading:
                     continue
-                print("Responsequeue.get: Error: Response queue is empty. Unable to dequeue a request.")
+                #print("Responsequeue.get: Error: Response queue is empty. Unable to dequeue a request.")
                 raise NoMoreItems
 
     def dump(self):
-        print(self.is_loading)
+        #print(self.is_loading)
         while True:
             try:
                 yield self.get_noasync()

@@ -70,9 +70,9 @@ class FuzzBaseModule:
         fuzz_worker = FuzzWorker(request_queue=self.request_queue, response_queue=self.response_queue,
                                  requester_client=self.requester_client, rate_limiter=self.rate_limiter,
                                  response_analyser=self.response_analyser, plugin_func=plugin_func)
-        # tasks = [fuzz_worker.work() for _ in range(self.num_workers)]
-        # await asyncio.gather(*tasks)
-        await fuzz_worker.work()
+        tasks = [fuzz_worker.work() for _ in range(self.num_workers)]
+        await asyncio.gather(*tasks)
+        #await fuzz_worker.work()
 
     async def populate_req_queue(self, req_list: list[dict]):
         await self.request_queue.populate(req_list)
@@ -277,17 +277,17 @@ if __name__ == '__main__':
         '$smthnelse$': ('i', 'o', 'p')
     }'''
     wlists = {
-        '$smth$': ('a',) * 5,
-        '$smthnelse$': ('i',) * 5
+        '$smth$': ('a',) * 10,
+        '$smthnelse$': ('i',) * 100
     }
 
     # 2. Define rate limiting parameters
-    rate_lim = {'rate_limit': 20, 'concurrency_limit': 5}
+    rate_lim = {'rate_limit': 200, 'concurrency_limit': 100}
 
     # 3. Define request contents with placeholders
     request_contents = {
         'method': 'GET',
-        'url': 'http://example.com',
+        'url': 'http://127.0.0.1:4444/',
         'headers': {
             'header1': 'value1',
             'header2': 'value2'
@@ -315,7 +315,7 @@ if __name__ == '__main__':
         if req:
             print(req.url)
             print(req.status_code)
-            print(req.text)
+            #print(req.text)
             print(f"time elapsed {req.elapsed.total_seconds()} seconds")
             print(req.encoding)
             print("does it have redirection: ", req.has_redirect_location)

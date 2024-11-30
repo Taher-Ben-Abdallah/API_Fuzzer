@@ -1,7 +1,7 @@
 class Socket {
   // Initialize connection
   constructor(namespace) {
-    this.socket = io(`http://127.0.0.1:5000${namespace}`, {
+    this.socket = io(`http://localhost:5000${namespace}`, {
       reconnection: true, // Enable reconnection
       reconnectionAttempts: 10, // Try 10 times
       reconnectionDelay: 1000, // Start with a 1 second delay between retries
